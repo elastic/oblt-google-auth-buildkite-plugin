@@ -1,7 +1,6 @@
 # Authenticate to Google Cloud from Buildkite
 
-This is an opinionated plugin to authenticate to the any Google Cloud project from Buildkite using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation).
-
+This is an opinionated plugin to authenticate to any Google Cloud project from Buildkite using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation).
 The Workload Identity Provider uses a hash for the GitHub repository with the format `owner/repo`, the
 hash has a length of 28 characters.
 
