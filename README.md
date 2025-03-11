@@ -1,14 +1,17 @@
 # Authenticate to Google Cloud from Buildkite
 
-This is an opinionated plugin to authenticate to the elastic-observability Google Cloud project from Buildkite using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation).
+This is an opinionated plugin to authenticate to the any Google Cloud project from Buildkite using [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation).
+
+The Workload Identity Provider uses a hash for the GitHub repository with the format `owner/repo`, the
+hash has a length of 28 characters.
 
 ## Properties
 
 | Name             | Description                                                                                           | Required | Default                 |
 |------------------|-------------------------------------------------------------------------------------------------------|----------|-------------------------|
 | `lifetime`       | The time (in seconds) the OIDC token will be valid for before expiry. Must be a non-negative integer. | `false`  | `1800`                  |
-| `project-number` | The GCP project number.                                                                               | `false`  | `8560181848`            |
 | `project-id`     | The GCP project id.                                                                                   | `false`  | `elastic-observability` |
+| `project-number` | The GCP project number.                                                                               | `false`  | `8560181848`            |
 
 ## Usage
 
@@ -20,4 +23,6 @@ steps:
     plugins:
       - elastic/oblt-google-auth#v1.0.0:
           lifetime: 1800 # seconds
+          # project-id: "elastic-observability"
+          # project-number: "8560181848"
 ```
