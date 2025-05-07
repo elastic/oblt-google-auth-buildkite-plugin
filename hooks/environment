@@ -7,13 +7,13 @@ DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
 # shellcheck source=../lib/common.bash
 . "$DIR/../lib/common.bash"
 
+
+# Create a temporary directory with both BSD and GNU mktemp
+TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
+
+# Override the temporary directory if windows
 if is_windows ; then
-  #
-  # "/c/Users/..." => "C:\Users\..."
-  TMPDIR="$(cygpath -w "$PWD")"
-else
-  # Create a temporary directory with both BSD and GNU mktemp
-  TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
+  TMPDIR="$PWD"
 fi
 
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
@@ -30,6 +30,14 @@ echo "Workload Identity Provider ID: ${WORKLOAD_IDENTITY_PROVIDER_ID}"
 
 echo "~~~ :gcloud: Configuring Google Cloud credentials"
 
+CREDENTIALS_FILE="$TMPDIR"/credentials.json
+TOKEN_FILE="$TMPDIR"/token.json
+if is_windows ; then
+  # Convert paths to Windows format
+  CREDENTIALS_FILE="$(cygpath -w "$CREDENTIALS_FILE")"
+  TOKEN_FILE="$(cygpath -w "$TOKEN_FILE")"
+fi
+
 cat << JSON > "$TMPDIR"/credentials.json
 {
   "type": "external_account",
@@ -37,13 +45,13 @@ cat << JSON > "$TMPDIR"/credentials.json
   "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
   "token_url": "https://sts.googleapis.com/v1/token",
   "credential_source": {
-    "file": "$TMPDIR/token.json"
+    "file": "$TOKEN_FILE"
   }
 }
 JSON
 
 export BUILDKITE_OIDC_TMPDIR="${TMPDIR}"
-export GOOGLE_APPLICATION_CREDENTIALS="${TMPDIR}"/credentials.json
+export GOOGLE_APPLICATION_CREDENTIALS="${CREDENTIALS_FILE}"
 export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${GOOGLE_APPLICATION_CREDENTIALS}"
 export CLOUDSDK_CORE_PROJECT="${PROJECT_ID}"
 export CLOUDSDK_PROJECT="${PROJECT_ID}"
