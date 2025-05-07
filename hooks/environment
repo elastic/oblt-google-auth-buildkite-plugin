@@ -2,19 +2,8 @@
 
 set -euo pipefail
 
-DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
-
-# shellcheck source=../lib/common.bash
-. "$DIR/../lib/common.bash"
-
-
 # Create a temporary directory with both BSD and GNU mktemp
 TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
-
-# Override the temporary directory if windows
-if is_windows ; then
-  TMPDIR="$PWD"
-fi
 
 CREDENTIALS_FILE="$TMPDIR"/credentials.json
 TOKEN_FILE="$TMPDIR"/token.json
@@ -33,7 +22,7 @@ echo "Workload Identity Provider ID: ${WORKLOAD_IDENTITY_PROVIDER_ID}"
 
 echo "~~~ :gcloud: Configuring Google Cloud credentials"
 
-if is_windows ; then
+if [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]] ; then
   # Convert paths to Windows format
   TOKEN_FILE="$(cygpath -w "$TOKEN_FILE")"
   # Escape backslashes for JSON by doubling them
