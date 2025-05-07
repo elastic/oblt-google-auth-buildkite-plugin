@@ -2,8 +2,19 @@
 
 set -euo pipefail
 
-# Create a temporary directory with both BSD and GNU mktemp
-TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
+DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+
+# shellcheck source=../lib/common.bash
+. "$DIR/../lib/common.bash"
+
+if is_windows ; then
+  #
+  # "/c/Users/..." => "C:\Users\..."
+  TMPDIR="$(cygpath -w "$PWD")"
+else
+  # Create a temporary directory with both BSD and GNU mktemp
+  TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
+fi
 
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
 
