@@ -58,3 +58,13 @@ export CLOUDSDK_PROJECT="${PROJECT_ID}"
 export GCLOUD_PROJECT="${PROJECT_ID}"
 export GCP_PROJECT="${PROJECT_ID}"
 export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
+
+echo "~~~ :buildkite: Debugging only"
+echo "BUILDKITE_OIDC_TMPDIR: ${BUILDKITE_OIDC_TMPDIR}"
+echo "GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}"
+echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE}"
+echo "TOKEN_FILE: ${TOKEN_FILE}"
+if is_windows ; then
+  echo "credentials-windows=$(cygpath -w "$TMPDIR/credentials.json")"
+  echo "token-windows=$(cygpath -w "$TMPDIR/token.json")"
+fi
