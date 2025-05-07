@@ -22,6 +22,7 @@ TOKEN_FILE="$TMPDIR"/token.json
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
 
 HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | sha256sum | cut -c1-27)
+
 PROJECT_NUMBER="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
 PROJECT_ID="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
 WORKLOAD_IDENTITY_POOL_ID="buildkite"
