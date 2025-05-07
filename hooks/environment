@@ -16,31 +16,30 @@ if is_windows ; then
   TMPDIR="$PWD"
 fi
 
+CREDENTIALS_FILE="$TMPDIR"/credentials.json
+TOKEN_FILE="$TMPDIR"/token.json
+
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
 
 HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | sha256sum | cut -c1-27)
-
 PROJECT_NUMBER="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
 PROJECT_ID="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
 WORKLOAD_IDENTITY_POOL_ID="buildkite"
 WORKLOAD_IDENTITY_PROVIDER_ID="repo-${HASH}"
 AUDIENCE="//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WORKLOAD_IDENTITY_POOL_ID}/providers/${WORKLOAD_IDENTITY_PROVIDER_ID}"
-buildkite-agent oidc request-token --audience "$AUDIENCE" --lifetime "${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME:-1800}" > "$TMPDIR"/token.json
+buildkite-agent oidc request-token --audience "$AUDIENCE" --lifetime "${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME:-1800}" > "$TOKEN_FILE"
 echo "Workload Identity Provider ID: ${WORKLOAD_IDENTITY_PROVIDER_ID}"
 
 echo "~~~ :gcloud: Configuring Google Cloud credentials"
 
-CREDENTIALS_FILE="$TMPDIR"/credentials.json
-TOKEN_FILE="$TMPDIR"/token.json
 if is_windows ; then
   # Convert paths to Windows format
-  CREDENTIALS_FILE="$(cygpath -w "$CREDENTIALS_FILE")"
   TOKEN_FILE="$(cygpath -w "$TOKEN_FILE")"
   # Escape backslashes for JSON by doubling them
   TOKEN_FILE="$(echo "$TOKEN_FILE" | sed 's/\\/\\\\/g')"
 fi
 
-cat << JSON > "$TMPDIR"/credentials.json
+cat << JSON > "$CREDENTIALS_FILE"
 {
   "type": "external_account",
   "audience": "$AUDIENCE",
@@ -60,13 +59,3 @@ export CLOUDSDK_PROJECT="${PROJECT_ID}"
 export GCLOUD_PROJECT="${PROJECT_ID}"
 export GCP_PROJECT="${PROJECT_ID}"
 export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
-
-echo "~~~ :buildkite: Debugging only"
-echo "BUILDKITE_OIDC_TMPDIR: ${BUILDKITE_OIDC_TMPDIR}"
-echo "GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS}"
-echo "CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE: ${CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE}"
-echo "TOKEN_FILE: ${TOKEN_FILE}"
-if is_windows ; then
-  echo "credentials-windows=$(cygpath -w "$TMPDIR/credentials.json")"
-  echo "token-windows=$(cygpath -w "$TMPDIR/token.json")"
-fi
