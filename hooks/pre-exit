@@ -7,3 +7,5 @@ if [[ -v BUILDKITE_OIDC_TMPDIR ]]; then
 
   echo "Removed credentials from $BUILDKITE_OIDC_TMPDIR"
 fi
+
+unset GOOGLE_OAUTH_ACCESS_TOKEN
