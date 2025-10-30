@@ -10,6 +10,12 @@ common:
       project-number: "911195782929"
 
 steps:
+  - label: ":bash: Tests"
+    command: "make tests"
+    agents:
+      provider: "gcp"
+      image: family/core-ubuntu-2204
+
   - label: ":shell: Shellcheck"
     command: "make shellcheck"
     agents:

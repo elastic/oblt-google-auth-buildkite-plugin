@@ -1,6 +1,12 @@
-.PHONY: all lint shellcheck clean
+.PHONY: all lint tests shellcheck clean
 
-all: lint shellcheck
+all: lint shellcheck tests
+
+tests:
+	-docker compose \
+	  run --rm \
+	  	-v "${PWD}:/app" \
+	  	tests
 
 lint:
 	-docker compose run lint
