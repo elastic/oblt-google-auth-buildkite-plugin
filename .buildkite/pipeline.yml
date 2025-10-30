@@ -25,8 +25,12 @@ steps:
   - label: ":gcp: Google Cloud Auth OIDC Test"
     agents:
       provider: gcp
+      image: family/core-ubuntu-2204
     plugins:
-      - *google_oidc_plugin
+      - elastic/oblt-google-auth#${BUILDKITE_COMMIT}:
+          lifetime: 10800 # seconds
+          project-id: "elastic-observability-ci"
+          project-number: "911195782929"
     command: |
       #!/usr/bin/env bash
       set +eu
@@ -37,8 +41,12 @@ steps:
   - label: ":gcp: Google Cloud Auth Service Account Test"
     agents:
       provider: gcp
+      image: family/core-ubuntu-2204
     plugins:
-      - *google_oidc_plugin:
+      - elastic/oblt-google-auth#${BUILDKITE_COMMIT}:
+          lifetime: 10800 # seconds
+          project-id: "elastic-observability-ci"
+          project-number: "911195782929"
           use-service-account: true
     command: |
       #!/usr/bin/env bash
