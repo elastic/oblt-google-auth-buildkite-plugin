@@ -6,6 +6,29 @@ This is an opinionated plugin to authenticate to any Google Cloud project from B
 The Workload Identity Provider uses a hash for the GitHub repository with the format `owner/repo`, the
 hash has a length of 28 characters.
 
+## How It Works
+
+This plugin supports two authentication modes:
+
+### OIDC Token Mode (Default)
+- Uses Buildkite's built-in OIDC token via `buildkite-agent oidc request-token`
+- Creates a Google Cloud external account credentials file
+- Suitable for most use cases with minimal setup
+
+### Service Account Mode
+- Creates temporary service accounts with specific permissions
+- Provides enhanced security and audit capabilities
+- Automatically cleaned up after job completion
+- Sends Slack notifications if cleanup fails
+
+## Environment Variables Set
+
+The plugin sets the following environment variables for your build steps:
+
+- `GOOGLE_APPLICATION_CREDENTIALS` - Path to the credentials file
+- `CLOUDSDK_CORE_PROJECT` - GCP project ID for gcloud CLI
+- `GOOGLE_CLOUD_PROJECT` - GCP project ID for client libraries
+
 ## Properties
 
 | Name                  | Description                                                                                           | Required | Default                 |
