@@ -5,7 +5,6 @@ all: lint shellcheck tests
 tests:
 	-docker compose \
 	  run --rm \
-	  	-v "${PWD}:/app" \
 	  	tests
 
 lint:
