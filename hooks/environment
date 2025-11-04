@@ -31,6 +31,7 @@ if [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]] ; then
   # Convert paths to Windows format
   TOKEN_FILE="$(cygpath -w "$TOKEN_FILE")"
   # Escape backslashes for JSON by doubling them
+  # shellcheck disable=SC2001
   TOKEN_FILE="$(echo "$TOKEN_FILE" | sed 's/\\/\\\\/g')"
 fi
 
@@ -60,7 +61,7 @@ if [ "$USE_SERVICE_ACCOUNT" = true ]; then
   echo "~~~ :gcloud: Generating temporary Service Account credentials"
 
   # Get the name of the repository
-  REPO_BASENAME=$(basename ${BUILDKITE_REPO})
+  REPO_BASENAME=$(basename "${BUILDKITE_REPO}")
   REPO_NAME=${REPO_BASENAME%.*}
 
   # Set some variables
@@ -68,7 +69,9 @@ if [ "$USE_SERVICE_ACCOUNT" = true ]; then
   SA_ACCOUNT="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
 
   # Redact the token file contents
-  echo "$(cat $TOKEN_FILE)" | buildkite-agent redactor add
+  # see official docs https://buildkite.com/docs/agent/v3/cli-redactor
+  # shellcheck disable=SC2005
+  echo "$(cat "$TOKEN_FILE")" | buildkite-agent redactor add
 
   # shellcheck disable=SC1091
   . "$CWD/../libs/gcloud"

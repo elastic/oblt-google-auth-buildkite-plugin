@@ -7,7 +7,7 @@ set -euo pipefail
 LABEL_ORG="obs"
 LABEL_DIVISION="engineering"
 LABEL_TEAM="eng-productivity"
-LABEL_PROJECT=${BUILDKITE_REPO}
+LABEL_PROJECT="${BUILDKITE_REPO}"
 LABEL_EPHEMERAL="true"
 
 # Create the service account
@@ -36,7 +36,7 @@ function create_service_account() {
 JSON
 
   curl -X POST \
-    -H "Authorization: Bearer $(cat $TOKEN_FILE)" \
+    -H "Authorization: Bearer $(cat "$TOKEN_FILE")" \
     -H "Content-Type: application/json; charset=utf-8" \
     -d @$REQUEST_FILE \
     "https://iam.googleapis.com/v1/projects/$PROJECT_ID/serviceAccounts"
@@ -69,7 +69,7 @@ function set_iam_policy() {
 JSON
 
   curl -X POST \
-    -H "Authorization: Bearer $(cat $TOKEN_FILE)" \
+    -H "Authorization: Bearer $(cat "$TOKEN_FILE")" \
     -H "Content-Type: application/json; charset=utf-8" \
     -d @$REQUEST_FILE \
     "https://cloudresourcemanager.googleapis.com/v1/projects/$PROJECT_ID:setIamPolicy"
@@ -88,7 +88,7 @@ function create_service_account_key() {
   local -r PROJECT_ID="$3"
   local -r SA_KEY_FILE="$4"
   curl -X POST \
-    -H "Authorization: Bearer $(cat $TOKEN_FILE)" \
+    -H "Authorization: Bearer $(cat "$TOKEN_FILE")" \
     -H "Content-Type: application/json; charset=utf-8" \
     "https://iam.googleapis.com/v1/projects/$PROJECT_ID/serviceAccounts/$SA_ACCOUNT/keys" > "$SA_KEY_FILE"
 }
