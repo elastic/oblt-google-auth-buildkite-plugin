@@ -1,0 +1,18 @@
+services:
+  tests:
+    image: buildkite/plugin-tester:v4.1.1
+    volumes:
+      - .:/plugin
+
+  lint:
+    image: buildkite/plugin-linter
+    command: ['--id', 'elastic/oblt-google-auth']
+    volumes:
+      - ".:/plugin"
+
+  shellcheck:
+    image: koalaman/shellcheck:latest
+    command: -x hooks/environment hooks/pre-exit
+    working_dir: /plugin
+    volumes:
+      - ".:/plugin"

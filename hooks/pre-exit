@@ -7,10 +7,10 @@ SLACK_CHANNEL="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_SLACK_CHANNEL:-"#observablt-b
 
 if [[ -n ${GOOGLE_APPLICATION_SERVICE_ACCOUNT:-} ]]; then
   echo "~~~ :gcloud: Cleaning up Service Account ${GOOGLE_APPLICATION_SERVICE_ACCOUNT}"
-  TOKEN_FILE=$(cat $GOOGLE_APPLICATION_CREDENTIALS | jq -r '.credentials_source.file')
+  TOKEN_FILE=$(cat "$GOOGLE_APPLICATION_CREDENTIALS" | jq -r '.credentials_source.file')
 
   curl -X DELETE \
-     -H "Authorization: Bearer $(cat $TOKEN_FILE)" \
+     -H "Authorization: Bearer $(cat "$TOKEN_FILE")" \
      "https://iam.googleapis.com/v1/projects/$GOOGLE_CLOUD_PROJECT/serviceAccounts/$GOOGLE_APPLICATION_SERVICE_ACCOUNT" || error=true
   
   if [[ -n ${error:-} ]]; then
@@ -29,7 +29,7 @@ EOM
 
     buildkite-agent annotate "$MESSAGE" --style "warning" --context "gcloud-auth-service-account-cleanup-failure"
 
-    send_message $SLACK_CHANNEL "$MESSAGE"
+    send_message "$SLACK_CHANNEL" "$MESSAGE"
   else
     echo "~~~ :gcloud: Service Account ${GOOGLE_APPLICATION_SERVICE_ACCOUNT} cleaned up"
   fi

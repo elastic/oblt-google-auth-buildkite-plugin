@@ -2,6 +2,24 @@ env:
   GOOGLE_PROJECT: "elastic-observability-ci"
 
 steps:
+  - label: ":bash: Tests"
+    command: "make tests"
+    agents:
+      provider: "gcp"
+      image: family/core-ubuntu-2204
+
+  - label: ":shell: Shellcheck"
+    command: "make shellcheck"
+    agents:
+      provider: "gcp"
+      image: family/core-ubuntu-2204
+
+  - label: ":sparkles: Lint"
+    command: "make lint"
+    agents:
+      provider: "gcp"
+      image: family/core-ubuntu-2204
+
   - label: ":gcp: Google Cloud Auth OIDC Test"
     agents:
       provider: gcp
