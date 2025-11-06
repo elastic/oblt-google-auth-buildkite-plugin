@@ -13,8 +13,4 @@ configuration:
       type: string
     project-number:
       type: number
-    use-service-account:
-      type: boolean
-    slack-channel:
-      type: string
   additionalProperties: false

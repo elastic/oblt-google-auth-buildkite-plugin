@@ -6,9 +6,7 @@ set -euo pipefail
 TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
 
 CREDENTIALS_FILE="$TMPDIR"/credentials.json
-REQUEST_FILE="$TMPDIR"/request.json
 TOKEN_FILE="$TMPDIR"/token.json
-SA_KEY_FILE="$TMPDIR"/sa-key.json
 
 CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -18,7 +16,6 @@ HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | sha256sum | cut
 
 PROJECT_NUMBER="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
 PROJECT_ID="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
-USE_SERVICE_ACCOUNT="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_USE_SERVICE_ACCOUNT:-"false"}"
 WORKLOAD_IDENTITY_POOL_ID="buildkite"
 WORKLOAD_IDENTITY_PROVIDER_ID="repo-${HASH}"
 AUDIENCE="//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WORKLOAD_IDENTITY_POOL_ID}/providers/${WORKLOAD_IDENTITY_PROVIDER_ID}"
@@ -34,18 +31,6 @@ if [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]] ; then
   TOKEN_FILE="$(echo "$TOKEN_FILE" | sed 's/\\/\\\\/g')"
 fi
 
-cat << JSON > "$CREDENTIALS_FILE"
-{
-  "type": "external_account",
-  "audience": "$AUDIENCE",
-  "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
-  "token_url": "https://sts.googleapis.com/v1/token",
-  "credential_source": {
-    "file": "$TOKEN_FILE"
-  }
-}
-JSON
-
 export BUILDKITE_OIDC_TMPDIR="${TMPDIR}"
 export GOOGLE_APPLICATION_CREDENTIALS="${CREDENTIALS_FILE}"
 export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${GOOGLE_APPLICATION_CREDENTIALS}"
@@ -54,37 +39,3 @@ export CLOUDSDK_PROJECT="${PROJECT_ID}"
 export GCLOUD_PROJECT="${PROJECT_ID}"
 export GCP_PROJECT="${PROJECT_ID}"
 export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
-
-# Login by Service Account
-if [ "$USE_SERVICE_ACCOUNT" = true ]; then
-  echo "~~~ :gcloud: Generating temporary Service Account credentials"
-
-  # Get the name of the repository
-  REPO_BASENAME=$(basename ${BUILDKITE_REPO})
-  REPO_NAME=${REPO_BASENAME%.*}
-
-  # Set some variables
-  SA_NAME="ephemeral-${REPO_NAME}-bk-plugin-sa-${BUILDKITE_JOB_ID}"
-  SA_ACCOUNT="$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com"
-
-  # Redact the token file contents
-  echo "$(cat $TOKEN_FILE)" | buildkite-agent redactor add
-
-  # shellcheck disable=SC1091
-  . "$CWD/../libs/gcloud"
-
-  # Create the service account
-  create_service_account "$SA_NAME" "$TOKEN_FILE" "$PROJECT_ID" "$REQUEST_FILE" "$REPO_NAME" "$BUILDKITE_JOB_ID"
-
-  # Set the IAM policy to the service account
-  set_iam_policy "$SA_ACCOUNT" "$TOKEN_FILE" "$PROJECT_ID" "$REQUEST_FILE"
-
-  # Create and download the service account key
-  create_service_account_key "$SA_ACCOUNT" "$TOKEN_FILE" "$PROJECT_ID" "$SA_KEY_FILE"
-
-  echo "~~~ :gcloud: Using Service Account credentials for $SA_ACCOUNT"
-
-  export GOOGLE_APPLICATION_CREDENTIALS="$SA_KEY_FILE"
-  export GOOGLE_APPLICATION_SERVICE_ACCOUNT="$SA_ACCOUNT"
-  export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${GOOGLE_APPLICATION_CREDENTIALS}"
-fi

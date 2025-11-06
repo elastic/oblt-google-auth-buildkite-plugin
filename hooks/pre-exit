@@ -1,44 +1,7 @@
 #!/usr/bin/env bash
 
-set +eu
-
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SLACK_CHANNEL="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_SLACK_CHANNEL:-"#observablt-bots"}"
-
-if [[ -n ${GOOGLE_APPLICATION_SERVICE_ACCOUNT:-} ]]; then
-  echo "~~~ :gcloud: Cleaning up Service Account ${GOOGLE_APPLICATION_SERVICE_ACCOUNT}"
-  TOKEN_FILE=$(cat $GOOGLE_APPLICATION_CREDENTIALS | jq -r '.credentials_source.file')
-
-  curl -X DELETE \
-     -H "Authorization: Bearer $(cat $TOKEN_FILE)" \
-     "https://iam.googleapis.com/v1/projects/$GOOGLE_CLOUD_PROJECT/serviceAccounts/$GOOGLE_APPLICATION_SERVICE_ACCOUNT" || error=true
-  
-  if [[ -n ${error:-} ]]; then
-    echo "!!! :gcloud: Failed to delete Service Account ${GOOGLE_APPLICATION_SERVICE_ACCOUNT}"
-
-    # Send Slack notification and set a Buildkite annotation about the failure
-
-    # shellcheck disable=SC1091
-    . "$CWD/../libs/slack"
-
-    read -r -d '' MESSAGE << EOM
-:fire: Google Auth Buildkite Plugin cleanup process failed: <$BUILDKITE_BUILD_URL|Execution logs>! 
-Check current service accounts executing \`gcloud iam service-accounts list --project=elastic-observability-ci --filter=Email:bk-plugin-sa\`. 
-Remove manually! :fire:
-EOM
-
-    buildkite-agent annotate "$MESSAGE" --style "warning" --context "gcloud-auth-service-account-cleanup-failure"
-
-    send_message $SLACK_CHANNEL "$MESSAGE"
-  else
-    echo "~~~ :gcloud: Service Account ${GOOGLE_APPLICATION_SERVICE_ACCOUNT} cleaned up"
-  fi
-fi
-
 if [[ -v BUILDKITE_OIDC_TMPDIR ]]; then
   rm -rf "$BUILDKITE_OIDC_TMPDIR"
 
   echo "Removed credentials from $BUILDKITE_OIDC_TMPDIR"
 fi
-
-set -eu

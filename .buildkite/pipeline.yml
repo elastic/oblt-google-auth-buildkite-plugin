@@ -15,22 +15,5 @@ steps:
       #!/usr/bin/env bash
       set +eu
 
-      echo "Listing service account"
-      gcloud iam service-accounts list --project=${GOOGLE_PROJECT}
-
-  - label: ":gcp: Google Cloud Auth Service Account Test"
-    agents:
-      provider: gcp
-      image: family/core-ubuntu-2204
-    plugins:
-      - elastic/oblt-google-auth#${BUILDKITE_COMMIT}:
-          lifetime: 10800 # seconds
-          project-id: "elastic-observability-ci"
-          project-number: "911195782929"
-          use-service-account: true
-    command: |
-      #!/usr/bin/env bash
-      set +eu
-
-      echo "Listing service accounts"
-      gcloud iam service-accounts list --project=${GOOGLE_PROJECT}
+      echo "Listing active auth accounts"
+      gcloud auth list --filter=status:ACTIVE --project=${GOOGLE_PROJECT}
