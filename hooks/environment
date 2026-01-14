@@ -31,6 +31,18 @@ if [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]] ; then
   TOKEN_FILE="$(echo "$TOKEN_FILE" | sed 's/\\/\\\\/g')"
 fi
 
+cat << JSON > "$CREDENTIALS_FILE"
+{
+  "type": "external_account",
+  "audience": "$AUDIENCE",
+  "subject_token_type": "urn:ietf:params:oauth:token-type:jwt",
+  "token_url": "https://sts.googleapis.com/v1/token",
+  "credential_source": {
+    "file": "$TOKEN_FILE"
+  }
+}
+JSON
+
 export BUILDKITE_OIDC_TMPDIR="${TMPDIR}"
 export GOOGLE_APPLICATION_CREDENTIALS="${CREDENTIALS_FILE}"
 export CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE="${GOOGLE_APPLICATION_CREDENTIALS}"
