@@ -16,4 +16,4 @@ steps:
       set +eu
 
       echo "Listing active auth accounts"
-      gcloud auth list --filter=status:ACTIVE --project=${GOOGLE_PROJECT}
+      gcloud auth list --project=${GOOGLE_PROJECT}
