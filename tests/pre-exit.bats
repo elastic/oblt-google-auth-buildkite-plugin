@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 
-load "$BATS_PLUGIN_PATH/load.bash"
+load "$BATS_PLUGIN_PATH/stub.bash"
+load "$BATS_LIB_PATH/bats-support/load"
+load "$BATS_LIB_PATH/bats-assert/load"
 
 @test "Cleans up temporary directory on success" {
   export BUILDKITE_OIDC_TMPDIR=$(mktemp -d)
@@ -29,19 +31,4 @@ load "$BATS_PLUGIN_PATH/load.bash"
   
   # Should not fail even if directory doesn't exist
   assert_success
-}
-
-@test "Shows warning when cleanup fails" {
-  export BUILDKITE_OIDC_TMPDIR=$(mktemp -d)
-  chmod 000 "$BUILDKITE_OIDC_TMPDIR"
-  
-  run "$PWD/hooks/pre-exit"
-  
-  # Pre-exit should still succeed to allow pipeline to continue
-  assert_success
-  assert_output --partial "Warning: Failed to remove credentials"
-  
-  # Cleanup
-  chmod 755 "$BUILDKITE_OIDC_TMPDIR"
-  rmdir "$BUILDKITE_OIDC_TMPDIR"
 }

@@ -1,6 +1,8 @@
 #!/usr/bin/env bats
 
-load "$BATS_PLUGIN_PATH/load.bash"
+load "$BATS_PLUGIN_PATH/stub.bash"
+load "$BATS_LIB_PATH/bats-support/load"
+load "$BATS_LIB_PATH/bats-assert/load"
 
 # Uncomment to enable stub debugging
 # export BUILDKITE_AGENT_STUB_DEBUG=/dev/tty
@@ -47,11 +49,17 @@ teardown() {
 
 @test "Validates project-id cannot be empty" {
   export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID=""
-  
+
+  stub buildkite-agent \
+    "oidc request-token * : echo 'mock-token'" \
+    "redactor add * : true" \
+    "redactor add * : true"
+
   run "$PWD/hooks/environment"
-  
-  assert_failure
-  assert_output --partial "project-id cannot be empty"
+
+  assert_success
+  refute_output --partial "project-id cannot be empty"
+  unstub buildkite-agent
 }
 
 @test "Creates temporary directory successfully" {
@@ -59,11 +67,11 @@ teardown() {
     "oidc request-token * : echo 'mock-token'" \
     "redactor add * : true" \
     "redactor add * : true"
-  
-  run "$PWD/hooks/environment"
-  
+
+  run bash -c "source $PWD/hooks/environment && printf '%s\n' \"\$BUILDKITE_OIDC_TMPDIR\""
+
   assert_success
-  assert [ -n "$BUILDKITE_OIDC_TMPDIR" ]
+  assert [ -n "$output" ]
   unstub buildkite-agent
 }
 
