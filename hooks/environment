@@ -8,7 +8,7 @@ validate_inputs() {
   local project_number="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
   local project_id="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
   
-  if ! [[ "$lifetime" =~ ^[0-9]+$ ]] || [[ "$lifetime" -lt 0 ]]; then
+  if ! [[ "$lifetime" =~ ^[0-9]+$ ]]; then
     echo "Error: lifetime must be a non-negative integer, got: $lifetime" >&2
     exit 1
   fi
