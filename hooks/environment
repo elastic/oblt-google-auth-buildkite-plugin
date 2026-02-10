@@ -2,15 +2,47 @@
 
 set -euo pipefail
 
+# Validate inputs
+validate_inputs() {
+  local lifetime="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME:-1800}"
+  local project_number="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
+  local project_id="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
+  
+  if ! [[ "$lifetime" =~ ^[0-9]+$ ]] || [[ "$lifetime" -lt 0 ]]; then
+    echo "Error: lifetime must be a non-negative integer, got: $lifetime" >&2
+    exit 1
+  fi
+  
+  if ! [[ "$project_number" =~ ^[0-9]+$ ]]; then
+    echo "Error: project-number must be numeric, got: $project_number" >&2
+    exit 1
+  fi
+  
+  if [[ -z "$project_id" ]]; then
+    echo "Error: project-id cannot be empty" >&2
+    exit 1
+  fi
+}
+
 # Create a temporary directory with both BSD and GNU mktemp
 TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
+
+if [[ ! -d "$TMPDIR" ]]; then
+  echo "Error: Failed to create temporary directory" >&2
+  exit 1
+fi
 
 CREDENTIALS_FILE="$TMPDIR"/credentials.json
 TOKEN_FILE="$TMPDIR"/token.json
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Log temp file paths (paths themselves are not secrets)
+echo "Credentials file: $CREDENTIALS_FILE"
+echo "Token file: $TOKEN_FILE"
 
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
+
+# Validate configuration
+validate_inputs
 
 HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | sha256sum | cut -c1-27)
 
@@ -19,7 +51,15 @@ PROJECT_ID="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observabili
 WORKLOAD_IDENTITY_POOL_ID="buildkite"
 WORKLOAD_IDENTITY_PROVIDER_ID="repo-${HASH}"
 AUDIENCE="//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WORKLOAD_IDENTITY_POOL_ID}/providers/${WORKLOAD_IDENTITY_PROVIDER_ID}"
-buildkite-agent oidc request-token --audience "$AUDIENCE" --lifetime "${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME:-1800}" > "$TOKEN_FILE"
+
+if ! buildkite-agent oidc request-token --audience "$AUDIENCE" --lifetime "${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME:-1800}" > "$TOKEN_FILE"; then
+  echo "Error: Failed to request OIDC token from Buildkite. Check that OIDC is enabled for this pipeline." >&2
+  exit 1
+fi
+
+# Redact token file contents from subsequent logs
+buildkite-agent redactor add "$TOKEN_FILE"
+
 echo "Workload Identity Provider ID: ${WORKLOAD_IDENTITY_PROVIDER_ID}"
 
 echo "~~~ :gcloud: Configuring Google Cloud credentials"
@@ -31,7 +71,7 @@ if [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]] ; then
   TOKEN_FILE="$(echo "$TOKEN_FILE" | sed 's/\\/\\\\/g')"
 fi
 
-cat << JSON > "$CREDENTIALS_FILE"
+if ! cat << JSON > "$CREDENTIALS_FILE"
 {
   "type": "external_account",
   "audience": "$AUDIENCE",
@@ -42,6 +82,15 @@ cat << JSON > "$CREDENTIALS_FILE"
   }
 }
 JSON
+then
+  echo "Error: Failed to write credentials file to $CREDENTIALS_FILE" >&2
+  exit 1
+fi
+
+# Redact credentials file contents from subsequent logs
+buildkite-agent redactor add "$CREDENTIALS_FILE"
+
+echo "Google Cloud credentials configured for project: $PROJECT_ID"
 
 export BUILDKITE_OIDC_TMPDIR="${TMPDIR}"
 export GOOGLE_APPLICATION_CREDENTIALS="${CREDENTIALS_FILE}"
@@ -51,3 +100,5 @@ export CLOUDSDK_PROJECT="${PROJECT_ID}"
 export GCLOUD_PROJECT="${PROJECT_ID}"
 export GCP_PROJECT="${PROJECT_ID}"
 export GOOGLE_CLOUD_PROJECT="${PROJECT_ID}"
+
+echo "GOOGLE_APPLICATION_CREDENTIALS set to: $GOOGLE_APPLICATION_CREDENTIALS"

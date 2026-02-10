@@ -1,0 +1,25 @@
+name: BATS Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  bats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install BATS
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bats
+      - name: Install bats-mock
+        run: |
+          git clone --depth 1 https://github.com/bats-core/bats-mock.git /tmp/bats-mock
+      - name: Run BATS tests
+        env:
+          BATS_PLUGIN_PATH: /tmp/bats-mock
+        run: |
+          bats tests/
