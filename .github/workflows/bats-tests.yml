@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   bats:
@@ -15,16 +16,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y bats
-      - name: Install bats-mock
-        run: |
-          git clone --depth 1 https://github.com/jasonkarns/bats-mock.git /tmp/bats-mock
-      - name: Install bats-support and bats-assert
-        run: |
-          git clone --depth 1 https://github.com/bats-core/bats-support.git /tmp/bats-lib/bats-support
-          git clone --depth 1 https://github.com/bats-core/bats-assert.git /tmp/bats-lib/bats-assert
       - name: Run BATS tests
-        env:
-          BATS_PLUGIN_PATH: /tmp/bats-mock
-          BATS_LIB_PATH: /tmp/bats-lib
         run: |
-          bats tests/
+          make test
