@@ -1,12 +1,7 @@
 #!/usr/bin/env bash
 
-# Note: Not using set -euo pipefail in pre-exit hook to allow cleanup to proceed even if removal fails
-
 if [[ -v BUILDKITE_OIDC_TMPDIR ]]; then
+  rm -rf "$BUILDKITE_OIDC_TMPDIR"
 
-  if rm -rf "$BUILDKITE_OIDC_TMPDIR" 2>/dev/null; then
-    echo "Removed credentials from $BUILDKITE_OIDC_TMPDIR"
-  else
-    echo "Warning: Failed to remove credentials from $BUILDKITE_OIDC_TMPDIR" >&2
-  fi
+  echo "Removed credentials from $BUILDKITE_OIDC_TMPDIR"
 fi
