@@ -1,19 +1,33 @@
 env:
   GOOGLE_PROJECT: "elastic-observability-ci"
 
-steps:
-  - label: ":gcp: Google Cloud Auth OIDC Test"
-    agents:
+agents:
       provider: gcp
       image: family/core-ubuntu-2204
+      machineType: 'n1-standard-1'
+      preemptible: true
+
+steps:
+  - label: ":test_tube: Unit Tests"
+    command: make test
+
+  - label: ":gear: Integration Tests"
+    command: make integration-test
+
+  - label: ":lint-roller: Plugin Lint"
+    command: make plugin-lint
+
+  - label: ":shell: ShellCheck"
+    command: make shellcheck
+
+  - label: ":gcp: E2E - Test Plugin Functionality"
     plugins:
       - elastic/oblt-google-auth#${BUILDKITE_COMMIT}:
-          lifetime: 10800 # seconds
+          lifetime: 10800
           project-id: "elastic-observability-ci"
           project-number: "911195782929"
-    command: |
-      #!/usr/bin/env bash
-      set +eu
+    command: .buildkite/scripts/test-e2e.sh
 
-      echo "Listing active auth accounts"
-      gcloud auth list --project=${GOOGLE_PROJECT}
+notify:
+  - slack: "#observability-ci"
+    if: build.branch == "main" && build.state == "failed"

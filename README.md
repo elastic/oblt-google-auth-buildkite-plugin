@@ -33,4 +33,41 @@ steps:
 This plugin needs the following requirements:
 
 - bash
-- buildkite-agent
+- buildkite-agent (with OIDC support enabled)
+
+## Troubleshooting
+
+
+
+## Security
+
+This plugin follows security best practices:
+
+- No hardcoded secrets - uses environment variables
+- Input validation for all configuration parameters
+- Secrets redacted from logs using `buildkite-agent redactor add`
+- Temporary credentials cleaned up in pre-exit hook
+- Fail-fast error handling with `set -euo pipefail`
+
+## Testing
+
+This plugin includes comprehensive test coverage using BATS (Bash Automated Testing System). 
+
+### Running Tests
+
+To run the tests locally, use the following Makefile targets:
+ - `test`: runs BATS tests
+ - `integration-test`: will test the functionality itself requesting a token from GCP
+ - `plugin-lint`: will check for linting issues
+ - `shellcheck`: will check BASH scripts
+```
+
+## Contributing
+
+When contributing to this plugin, please ensure:
+
+1. All changes include appropriate tests
+2. Error messages are clear and actionable
+3. Secrets are redacted from logs using `buildkite-agent redactor add`
+4. Input validation is performed for user-provided configuration
+5. Documentation is updated to reflect changes
