@@ -1,4 +1,4 @@
-.PHONY: test clean
+.PHONY: test clean integration-test plugin-lint shellcheck
 
 ROOT_DIR := $(PWD)
 BATS_DIR := $(ROOT_DIR)/.tmp/bats-core
@@ -31,5 +31,25 @@ test: $(BATS_BIN) $(BATS_MOCK_DIR)/stub.bash $(BATS_SUPPORT_DIR)/load $(BATS_ASS
 	BATS_LIB_PATH="$(BATS_LIB_DIR)" \
 	"$(BATS_BIN)" tests/
 
+INTEGRATION_LIBS_DIR := $(ROOT_DIR)/tests/bats-libs
+
+$(INTEGRATION_LIBS_DIR):
+	mkdir -p "$(INTEGRATION_LIBS_DIR)"
+	git clone --depth 1 https://github.com/bats-core/bats-support.git "$(INTEGRATION_LIBS_DIR)/bats-support"
+	git clone --depth 1 https://github.com/bats-core/bats-assert.git "$(INTEGRATION_LIBS_DIR)/bats-assert"
+	git clone --depth 1 https://github.com/jasonkarns/bats-mock.git "$(INTEGRATION_LIBS_DIR)/bats-mock"
+
+CONTAINER_RUNTIME := $(shell command -v docker 2>/dev/null || command -v podman 2>/dev/null)
+COMPOSE := $(shell command -v docker 2>/dev/null && echo 'docker compose' || echo 'podman compose')
+
+integration-test: $(INTEGRATION_LIBS_DIR)
+	$(COMPOSE) run --rm tests
+
+plugin-lint:
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/plugin:z docker.io/buildkite/plugin-linter --id elastic/oblt-google-auth
+
+shellcheck:
+	shellcheck hooks/*
+
 clean:
-	rm -rf .tmp
+	rm -rf .tmp tests/bats-libs
