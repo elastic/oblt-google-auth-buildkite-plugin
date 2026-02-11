@@ -55,17 +55,11 @@ This plugin includes comprehensive test coverage using BATS (Bash Automated Test
 
 ### Running Tests
 
-To run the tests locally, you need to have BATS installed along with the Buildkite plugin testing framework:
-
-```bash
-# Install BATS and required dependencies
-npm install -g bats
-
-# Run all tests
-bats tests/
-
-# Run specific test file
-bats tests/environment.bats
+To run the tests locally, use the following Makefile targets:
+ - `test`: runs BATS tests
+ - `integration-test`: will test the functionality itself requesting a token from GCP
+ - `plugin-lint`: will check for linting issues
+ - `shellcheck`: will check BASH scripts
 ```
 
 ## Contributing
