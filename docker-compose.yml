@@ -1,0 +1,13 @@
+services:
+  tests:
+    image: docker.io/bats/bats:latest
+    volumes:
+      - .:/plugin:z
+      - ./tests/bats-libs/bats-support:/opt/bats/lib/bats-support:z
+      - ./tests/bats-libs/bats-assert:/opt/bats/lib/bats-assert:z
+      - ./tests/bats-libs/bats-mock:/opt/bats/lib/bats-mock:z
+    working_dir: /plugin
+    environment:
+      - BATS_PLUGIN_PATH=/opt/bats/lib/bats-mock
+      - BATS_LIB_PATH=/opt/bats/lib
+    command: tests/

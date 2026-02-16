@@ -33,4 +33,5 @@ steps:
 This plugin needs the following requirements:
 
 - bash
-- buildkite-agent
+- buildkite-agent (with OIDC support enabled)
+
