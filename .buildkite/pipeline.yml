@@ -29,5 +29,5 @@ steps:
     command: .buildkite/scripts/test-e2e.sh
 
 notify:
-  - slack: "#observability-ci"
+  - slack: "#observablt-bots"
     if: build.branch == "main" && build.state == "failed"

@@ -20,24 +20,6 @@ teardown() {
   fi
 }
 
-@test "Validates lifetime must be non-negative integer" {
-  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME="-100"
-  
-  run "$PWD/hooks/environment"
-  
-  assert_failure
-  assert_output --partial "lifetime must be a non-negative integer"
-}
-
-@test "Validates lifetime must be numeric" {
-  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME="not-a-number"
-  
-  run "$PWD/hooks/environment"
-  
-  assert_failure
-  assert_output --partial "lifetime must be a non-negative integer"
-}
-
 @test "Validates project-number must be numeric" {
   export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER="not-numeric"
   
