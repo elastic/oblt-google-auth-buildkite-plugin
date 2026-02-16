@@ -40,7 +40,7 @@ $(INTEGRATION_LIBS_DIR):
 	git clone --depth 1 https://github.com/jasonkarns/bats-mock.git "$(INTEGRATION_LIBS_DIR)/bats-mock"
 
 CONTAINER_RUNTIME := $(shell command -v docker 2>/dev/null || command -v podman 2>/dev/null)
-COMPOSE := $(shell command -v docker 2>/dev/null && echo 'docker compose' || echo 'podman compose')
+COMPOSE := $(shell command -v docker >/dev/null 2>&1 && echo 'docker compose' || echo 'podman compose')
 
 integration-test: $(INTEGRATION_LIBS_DIR)
 	$(COMPOSE) run --rm tests
@@ -49,7 +49,7 @@ plugin-lint:
 	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/plugin:z docker.io/buildkite/plugin-linter --id elastic/oblt-google-auth
 
 shellcheck:
-	shellcheck hooks/*
+	$(CONTAINER_RUNTIME) run --rm -v "$(PWD)":/mnt:z docker.io/koalaman/shellcheck:stable /mnt/hooks/environment /mnt/hooks/pre-exit
 
 clean:
 	rm -rf .tmp tests/bats-libs
