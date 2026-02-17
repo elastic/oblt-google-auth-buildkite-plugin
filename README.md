@@ -37,7 +37,13 @@ This plugin needs the following requirements:
 
 ## Troubleshooting
 
+If authentication fails or the plugin does not behave as expected, check the following:
 
+- **OIDC support**: Ensure your `buildkite-agent` is configured with OIDC support enabled.
+- **Environment variables**: Verify that any required environment variables (for example, `GOOGLE_APPLICATION_CREDENTIALS`) are set and exported in the step.
+- **Project configuration**: Confirm that `project-id` and `project-number` (if overridden) match an existing Google Cloud project and Workload Identity Provider configuration.
+- **Permissions**: Make sure the Workload Identity Pool and Provider allow the Buildkite identity and that the corresponding service account has the necessary IAM roles (e.g., to list clusters with `gcloud container clusters list`).
+- **Token lifetime**: If you override `lifetime`, ensure it is a non-negative integer and within allowed limits for your Google Cloud setup.
 
 ## Security
 
