@@ -8,8 +8,6 @@ TMPDIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'buildkiteXXXX')
 CREDENTIALS_FILE="$TMPDIR"/credentials.json
 TOKEN_FILE="$TMPDIR"/token.json
 
-CWD="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
 
 HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | sha256sum | cut -c1-27)
@@ -28,6 +26,7 @@ if [[ "$OSTYPE" =~ ^(win|msys|cygwin) ]] ; then
   # Convert paths to Windows format
   TOKEN_FILE="$(cygpath -w "$TOKEN_FILE")"
   # Escape backslashes for JSON by doubling them
+  # shellcheck disable=SC2001
   TOKEN_FILE="$(echo "$TOKEN_FILE" | sed 's/\\/\\\\/g')"
 fi
 
