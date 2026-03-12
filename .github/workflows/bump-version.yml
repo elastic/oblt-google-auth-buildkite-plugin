@@ -1,0 +1,42 @@
+name: bump-version
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump-version:
+    runs-on: ubuntu-slim
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Update version in README
+        run: |
+          NEW_VERSION="${GITHUB_REF#refs/tags/}"
+          sed -i "s|elastic/oblt-google-auth#v[0-9]*\.[0-9]*\.[0-9]*|elastic/oblt-google-auth#${NEW_VERSION}|g" README.md
+
+      - name: Create pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_VERSION="${GITHUB_REF#refs/tags/}"
+          BRANCH="update-version-${NEW_VERSION}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "${BRANCH}"
+          git add README.md
+          git diff --staged --quiet && echo "No changes to commit" && exit 0
+          git commit -m "docs: bump version to ${NEW_VERSION}"
+          git push origin "${BRANCH}"
+          gh pr create \
+            --title "docs: bump version to ${NEW_VERSION}" \
+            --body "Update README.md plugin version reference to \`${NEW_VERSION}\`." \
+            --base main \
+            --head "${BRANCH}"
