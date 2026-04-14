@@ -4,6 +4,8 @@ updates:
     directories:
       - "/"
       - "/.github/workflows/*"
+    labels:
+      - 'changelog:dependencies'
     schedule:
       interval: "weekly"
       day: "sunday"
