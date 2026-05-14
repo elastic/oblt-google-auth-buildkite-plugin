@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-if [[ -n "${BUILDKITE_OIDC_TMPDIR:-}" ]] && [[ "$BUILDKITE_OIDC_TMPDIR" != "/" ]] && [[ -d "$BUILDKITE_OIDC_TMPDIR" ]]; then
+SYSTEM_TMPDIR="${TMPDIR:-/tmp}"
+SYSTEM_TMPDIR="${SYSTEM_TMPDIR%/}"
+
+if [[ -n "${BUILDKITE_OIDC_TMPDIR:-}" ]] && [[ "$BUILDKITE_OIDC_TMPDIR" != "/" ]] && [[ -d "$BUILDKITE_OIDC_TMPDIR" ]] && [[ "$BUILDKITE_OIDC_TMPDIR" == "$SYSTEM_TMPDIR"/* ]]; then
   rm -rf "$BUILDKITE_OIDC_TMPDIR"
 
   echo "Removed credentials from $BUILDKITE_OIDC_TMPDIR"
