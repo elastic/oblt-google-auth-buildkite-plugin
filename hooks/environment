@@ -10,7 +10,14 @@ TOKEN_FILE="$TMPDIR"/token.json
 
 echo "~~~ :buildkite: Requesting OIDC token from Buildkite"
 
-HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | sha256sum | cut -c1-27)
+# sha256sum is GNU coreutils only and isn't present on macOS agents by
+# default; fall back to the BSD/macOS-native shasum equivalent.
+if command -v sha256sum >/dev/null 2>&1; then
+  SHA256_CMD=(sha256sum)
+else
+  SHA256_CMD=(shasum -a 256)
+fi
+HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | "${SHA256_CMD[@]}" | cut -c1-27)
 
 PROJECT_NUMBER="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
 PROJECT_ID="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
