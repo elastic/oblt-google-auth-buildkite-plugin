@@ -13,4 +13,7 @@ configuration:
       type: string
     project-number:
       type: number
+    workload-identity-pool-suffix:
+      type: string
+      pattern: "^[a-z0-9]([a-z0-9-]{0,20}[a-z0-9])?$"
   additionalProperties: false

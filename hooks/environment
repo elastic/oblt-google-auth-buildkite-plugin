@@ -21,10 +21,23 @@ HASH=$(echo "${BUILDKITE_REPO}" | awk -F'[:.]' '{ printf $3 }' | "${SHA256_CMD[@
 
 PROJECT_NUMBER="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_NUMBER:-"8560181848"}"
 PROJECT_ID="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_PROJECT_ID:-"elastic-observability"}"
-WORKLOAD_IDENTITY_POOL_ID="buildkite"
+
+# The pool id always keeps the "buildkite" prefix so this plugin can only ever
+# target pools dedicated to Buildkite. Teams owning a separate pool select it
+# with workload-identity-pool-suffix, e.g. "sec-eng" -> "buildkite-sec-eng".
+POOL_SUFFIX="${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX:-}"
+
+if [[ -n "${POOL_SUFFIX}" && ! "${POOL_SUFFIX}" =~ ^[a-z0-9]([a-z0-9-]{0,20}[a-z0-9])?$ ]]; then
+  echo "Invalid workload-identity-pool-suffix: '${POOL_SUFFIX}'." >&2
+  echo "Expected 1-22 characters of [a-z0-9-], starting and ending with a letter or digit." >&2
+  exit 1
+fi
+
+WORKLOAD_IDENTITY_POOL_ID="buildkite${POOL_SUFFIX:+-${POOL_SUFFIX}}"
 WORKLOAD_IDENTITY_PROVIDER_ID="repo-${HASH}"
 AUDIENCE="//iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WORKLOAD_IDENTITY_POOL_ID}/providers/${WORKLOAD_IDENTITY_PROVIDER_ID}"
 buildkite-agent oidc request-token --audience "$AUDIENCE" --lifetime "${BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_LIFETIME:-1800}" > "$TOKEN_FILE"
+echo "Workload Identity Pool ID: ${WORKLOAD_IDENTITY_POOL_ID}"
 echo "Workload Identity Provider ID: ${WORKLOAD_IDENTITY_PROVIDER_ID}"
 
 echo "~~~ :gcloud: Configuring Google Cloud credentials"
