@@ -32,7 +32,26 @@ steps:
           lifetime: 1800 # seconds
           # project-id: "elastic-observability"
           # project-number: "8560181848"
-          # workload-identity-pool-suffix: "sec-eng" # -> pool "buildkite-sec-eng"
+```
+
+### Using a dedicated Workload Identity Pool
+
+`workload-identity-pool-suffix` only works if the target project already has a `buildkite-<suffix>`
+pool provisioned for it — this plugin does not create one. Pool provisioning is opinionated and
+managed through a dedicated Terraform module, so this option is only useful to teams that have
+already set up such a pool through that module.
+
+```yml
+steps:
+  - command: |
+      echo "Credentials are located at \$GOOGLE_APPLICATION_CREDENTIALS"
+      gcloud container clusters list
+    plugins:
+      - elastic/oblt-google-auth#v1.3.2:
+          lifetime: 1800 # seconds
+          project-id: "elastic-observability"
+          project-number: "8560181848"
+          workload-identity-pool-suffix: "sec-eng" # -> pool "buildkite-sec-eng"
 ```
 
 ## Requirements
