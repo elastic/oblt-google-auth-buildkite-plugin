@@ -166,3 +166,83 @@ teardown() {
   assert [ -d "${BUILDKITE_OIDC_TMPDIR}" ]
   unstub buildkite-agent
 }
+
+@test "credentials file audience uses the default buildkite pool" {
+  stub buildkite-agent \
+    "oidc request-token --audience * --lifetime * : echo fake-oidc-token"
+
+  source hooks/environment
+
+  run jq -re '.audience' "${GOOGLE_APPLICATION_CREDENTIALS}"
+  assert_success
+  assert_output --partial "/workloadIdentityPools/buildkite/providers/"
+  unstub buildkite-agent
+}
+
+@test "credentials file audience uses the suffixed pool" {
+  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX="sec-eng"
+
+  stub buildkite-agent \
+    "oidc request-token --audience * --lifetime * : echo fake-oidc-token"
+
+  source hooks/environment
+
+  run jq -re '.audience' "${GOOGLE_APPLICATION_CREDENTIALS}"
+  assert_success
+  assert_output --partial "/workloadIdentityPools/buildkite-sec-eng/providers/"
+  unstub buildkite-agent
+}
+
+@test "an empty pool suffix falls back to the default pool" {
+  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX=""
+
+  stub buildkite-agent \
+    "oidc request-token --audience * --lifetime * : echo fake-oidc-token"
+
+  source hooks/environment
+
+  run jq -re '.audience' "${GOOGLE_APPLICATION_CREDENTIALS}"
+  assert_success
+  assert_output --partial "/workloadIdentityPools/buildkite/providers/"
+  unstub buildkite-agent
+}
+
+@test "prints the workload identity pool id" {
+  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX="sec-eng"
+
+  stub buildkite-agent \
+    "oidc request-token --audience * --lifetime * : echo fake-oidc-token"
+
+  run bash hooks/environment
+
+  assert_success
+  assert_output --partial "Workload Identity Pool ID: buildkite-sec-eng"
+  unstub buildkite-agent
+}
+
+@test "fails on a pool suffix with unsupported characters" {
+  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX="Sec_Eng"
+
+  run bash hooks/environment
+
+  assert_failure
+  assert_output --partial "Invalid workload-identity-pool-suffix: 'Sec_Eng'."
+}
+
+@test "fails on a pool suffix with a trailing hyphen" {
+  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX="sec-eng-"
+
+  run bash hooks/environment
+
+  assert_failure
+  assert_output --partial "Invalid workload-identity-pool-suffix: 'sec-eng-'."
+}
+
+@test "fails on a pool suffix longer than 22 characters" {
+  export BUILDKITE_PLUGIN_OBLT_GOOGLE_AUTH_WORKLOAD_IDENTITY_POOL_SUFFIX="aaaaaaaaaaaaaaaaaaaaaaa"
+
+  run bash hooks/environment
+
+  assert_failure
+  assert_output --partial "Invalid workload-identity-pool-suffix"
+}
