@@ -50,7 +50,7 @@ steps:
       - elastic/oblt-google-auth#v1.3.2:
           lifetime: 1800 # seconds
           project-id: "elastic-observability"
-          project-number: "8560181848"
+          project-number: 8560181848
           workload-identity-pool-suffix: "sec-eng" # -> pool "buildkite-sec-eng"
 ```
 
