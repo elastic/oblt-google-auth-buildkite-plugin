@@ -28,7 +28,7 @@ steps:
       echo "Credentials are located at \$GOOGLE_APPLICATION_CREDENTIALS"
       gcloud container clusters list
     plugins:
-      - elastic/oblt-google-auth#v1.3.2:
+      - elastic/oblt-google-auth#v1.3.3:
           lifetime: 1800 # seconds
           # project-id: "elastic-observability"
           # project-number: "8560181848"
@@ -47,7 +47,7 @@ steps:
       echo "Credentials are located at \$GOOGLE_APPLICATION_CREDENTIALS"
       gcloud container clusters list
     plugins:
-      - elastic/oblt-google-auth#v1.3.2:
+      - elastic/oblt-google-auth#v1.3.3:
           lifetime: 1800 # seconds
           project-id: "elastic-observability"
           project-number: 8560181848
