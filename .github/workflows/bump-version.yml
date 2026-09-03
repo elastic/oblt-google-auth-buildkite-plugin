@@ -39,4 +39,5 @@ jobs:
             --title "docs: bump version to ${NEW_VERSION}" \
             --body "Update README.md plugin version reference to \`${NEW_VERSION}\`." \
             --base main \
-            --head "${BRANCH}"
+            --head "${BRANCH}" \
+            --label "changelog:docs"
