@@ -1,2 +1,5 @@
 # Default owner
 * @elastic/observablt-ci
+
+# Agentic workflow client triggers (elastic/oblt-aw distribution)
+/.github/workflows/trigger-obs-aw-* @elastic/observablt-ci
