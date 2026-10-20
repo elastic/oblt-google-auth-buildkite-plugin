@@ -60,3 +60,7 @@ This plugin needs the following requirements:
 
 - bash
 - buildkite-agent
+
+## Buildkite pipeline
+
+The [Buildkite pipeline documentation](.buildkite/docs/oblt-google-auth-buildkite-plugin.md) describes the repository's automated plugin tests and validation steps.
