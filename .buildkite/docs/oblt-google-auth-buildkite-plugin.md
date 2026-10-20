@@ -8,7 +8,7 @@ This Buildkite pipeline runs unit tests, plugin linting, ShellCheck, and an end-
 | --- | --- |
 | Platform | Buildkite |
 | Source | [`.buildkite/pipeline.yml`](../pipeline.yml) |
-| Trigger | The pipeline YAML declares no trigger or branch filter. The checked-in pull request integration config enables commit builds and `/test` comments; see [`.buildkite/pull-requests.json`](../pull-requests.json). |
+| Trigger | The pipeline YAML declares no trigger or branch filter. The checked-in pull request integration config enables commit builds and `/test this` or `/test it` comments; see [`.buildkite/pull-requests.json`](../pull-requests.json). |
 
 ## Purpose
 
@@ -16,7 +16,7 @@ The checked-in configuration defines validation for the plugin: Bats tests, the 
 
 ## When it runs
 
-The pipeline YAML does not specify a branch filter or trigger. The checked-in pull request integration config names the pipeline slug `oblt-google-auth-buildkite-plugin` and enables builds on commits and comments matching `/test`, `/test this`, or `/test it` (the regex permits any non-word separators before `this` or `it`). It skips builds when the `skip-ci` label is present and when only Markdown files changed. That integration config also limits triggering users to repository users with `admin` or `write` permission.
+The pipeline YAML does not specify a branch filter or trigger. The checked-in pull request integration config names the pipeline slug `oblt-google-auth-buildkite-plugin` and enables builds on commits and comments beginning with `/test this` or `/test it` (the regex requires one or more non-word separators before `this` or `it`; bare `/test` does not match). It skips builds when the `skip-ci` label is present and when only Markdown files changed. The access settings enable `allow_org_users` and list `admin` and `write` under `allowed_repo_permissions`.
 
 These are checked-in settings; the available sources do not verify the live Buildkite configuration.
 
